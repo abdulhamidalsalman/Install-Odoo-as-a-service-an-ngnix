@@ -1,0 +1,29 @@
+*****************************************************************CONFIGURAR OTRO SERVIDOR ODOO PARA BALANCEAR LA CARGA*********************************************
+1. 	Realizar la misma instalacion  que se realizo en el tutorial "instalacion de odoo como servicio"
+
+2. 	Copiar y pegar las mismas carpetas de addons de la app odoo en el nuevo servidor (remplazar addons).
+
+3.	Para evitar el siguiente problema:
+	IOError: [Errno 2] No such file or directory: u'/home/odoo/.local/share/Odoo/filestore/test/51/5173cacb784a4e0b4bc43b745ad9c08247141a85'
+	2017-02-21 17:05:48,335 29533 INFO test openerp.addons.base.ir.ir_attachment: _read_file reading /home/odoo/.local/share/Odoo/filestore/test/08/08ebc81e57db863437270b64ef2043154d5bb1b2
+
+	Se debe copiar el file store del webserver que se esta copiando en la ruta que se especifica /home/odoo/.local/share/Odoo/filestore/, este es el filestore 
+	el cual contiene todos los archivos imagenes etc que han sido grabados en la aplicacion y tambien deben ser exportados (remplazar el filestore de odoo)
+
+4.	en el archivo /etc/odoo-server.conf editar:
+
+; This is the password that allows database operations:
+; admin_passwd = admin
+db_host = 192.168.14.106
+db_port = 5432
+db_user = odoo
+db_password = *********
+addons_path = /home/odoo/server/addons
+logfile = /var/log/odoo/odoo-server.log
+
+xmlrpc_interface = 127.0.0.1
+netrpc_interface = 127.0.0.1
+
+donde db_host es la direccion ip donde se encuentra la base de datos, con su respectivo usuario y contraseña
+
+http://www.schenkels.nl/2014/12/reverse-proxy-with-odoo-8-nginx-ubuntu-14-04-lts/
