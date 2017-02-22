@@ -1,0 +1,150 @@
+********************************************************************************INSTALACION ODOO COMO SERVICIO ***************************************
+
+########### 1. Actualizando el sistema ############
+
+sudo su
+
+apt-get update && apt-get upgrade
+
+########### 2. Creando el usuario propio para ejecutar Odoo Server ############
+
+adduser --system --home=/opt/odoo --group odoo
+
+########### 3. Instalando y configurando Postgresql ############
+
+apt-get install postgresql postgresql-server-dev-9.3
+
+# Iniciamos sesión en Postgresql
+
+su - postgres
+
+# Creamos el usuario odoo en postgreSql y le asignamos un password, este usuario y clave # 
+
+debemos tenerlo presente porque lo usaremos para la configuración de OdooERP con Postgresql.
+
+createuser --createdb --username postgres --no-createrole --no-superuser --pwprompt odoo
+
+# ingresamos la clave solicitada:
+
+# Enter password for new role: ********
+# Enter it again: *
+
+# Finalizamos la sesión de postgres
+
+exit
+
+########### 4. Instalando librerías ############
+
+apt-get install python-pip python-dev python-ldap libjpeg-dev libevent-dev libxml2-dev node-less libxslt1-dev libldap2-dev libsasl2-dev
+
+
+
+########### 5. Instalando librerías de Python requeridas por Odoo Server con pip ############
+
+
+cd /tmp
+wget http://marlonfalcon.cl/odoo/dependencias.txt
+pip install -r /tmp/dependencias.txt
+
+
+# Para ver si los paquetes fueron instalados correctamente: 
+
+pip freeze
+
+
+########### 6. Instalando Odoo Server ############
+
+su - odoo -s /bin/bash
+wget https://github.com/odoo/odoo/archive/9.0.zip
+unzip 9.0.zip
+cp -a odoo-9.0 server
+rm -rf odoo-9.0
+
+# inciamos Odoo para ver si hasta aqui todo hemos hecho bien.
+
+/home/odoo/server/openerp-server
+
+
+# Presionamos Ctrl + C para detener el inicio de Odoo Server.
+
+# Luego presionamos exit para salir de inicio de sesión del usuario odoo.
+
+exit
+
+
+########### 7. Creando un directorio para almacenar el archivo de logs ############
+
+mkdir /var/log/odoo/
+chown odoo:root /var/log/odoo
+
+
+########### 8. Configurando Odoo Server ############
+
+cp /home/odoo/server/debian/openerp-server.conf /etc/odoo-server.conf
+chown odoo: /etc/odoo-server.conf
+chmod 640 /etc/odoo-server.conf
+
+########### 8.1 Editamos el archivo odoo-server.conf ############
+nano /etc/odoo-server.conf
+
+# Modificamos lo siguiente:
+
+db_host = False
+db_port = False
+db_user = odoo
+db_password = CLAVE CREADO EN EL PASO 3
+addons_path = /home/odoo/server/addons
+logfile = /var/log/odoo/odoo-server.log
+
+# Presionamos Ctrl + O para guardar y enter
+# Luego Ctrl + X para salir.
+
+Si la base de datos esta en otro servidor entonces se debe especificar la ip: 
+
+; This is the password that allows database operations:
+; admin_passwd = admin
+db_host = 192.168.14.106
+db_port = 5432
+db_user = odoo
+db_password = cajo10223
+addons_path = /home/odoo/server/addons
+logfile = /var/log/odoo/odoo-server.log
+
+
+########### 9. Script de inicio automatico de Odoo-Server en Ubuntu 14 ############
+
+cp /home/odoo/server/debian/init /etc/init.d/odoo-server
+chmod 755 /etc/init.d/odoo-server
+chown root: /etc/init.d/odoo-server
+
+# Editamos el archivo.
+
+vim /etc/init.d/odoo-server
+
+# Modificamos los siguientes valores a:
+
+DAEMON=/home/odoo/server/odoo.py
+NAME=odoo-server
+DESC=odoo-server
+CONFIG=/etc/odoo-server.conf
+
+
+# Presionamos Ctrl + O para guardar y enter
+# Luego Ctrl + X para salir.
+
+
+### 10. Haciendo que Odoo Server se inicie cuando reiniciemos nuestro servidor: ############
+
+update-rc.d odoo-server defaults
+
+
+########### 11 . Iniciamos el servicio de Odoo: ############
+/etc/init.d/odoo-server start
+
+
+########### 12 . Ingresando via web: ############
+
+http://localhost:8069
+
+
+https://www.youtube.com/watch?v=zl-h96mkqjU
