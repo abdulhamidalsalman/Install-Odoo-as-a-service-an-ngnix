@@ -1,0 +1,92 @@
+*************************************************************************CONFIGURACION DE NGINX COMO BALANCEADOR DE CARGA *********************************************
+
+
+Para escalar horizontalmente los servidores de aplicaciones, aumentar el rendimiento, disminuir la latencia, conseguir tolerancia 
+a fallos y aumentar la disponibilidad podemos usar el servidor web Nginx como balanceador de carga entre varios servidores 
+de aplicaciones. En este ejemplo muestro la configuración necesaria para añadir la funcionalidad de balanceador de carga a Nginx 
+entre varios servidores de aplicaciones Tomcat usando además Docker.
+
+
+Hay tres estrategias para balancear o distribuir la carga:
+
+round-robin: las peticiones son distribuidas entre los servidores de forma cíclica. Cabe la posibilidad de que las peticiones más pesadas 
+sean procesadas por el mismo servidor, distribuye las peticiones de forma ecuánime pero la carga no.
+
+least-connected: la siguiente petición es atendida por el servidor con menos conexiones activas.
+
+ip-hash: se selecciona el servidor que atenderá la petición en base a algún dato como la dirección IP, de esta forma todas las 
+peticiones de un usuario son atendidas por el mismo servidor.
+
+
+·······························································································································
+Esta es la configuración básica con la estrategia round-robin. Los servidores balanceados se definen con la directiva upstream 
+a los que se hace de proxy inverso con la directiva proxy_pass.
+
+upstream app {
+    server app1:8080;
+    server app2:8080;
+    server app3:8080;
+}
+
+server {
+    listen 80;
+
+    location / {
+        proxy_pass http://app;
+        add_header X-Upstream $upstream_addr;
+    }
+}
+
+
+·······························································································································
+Para usar la estrategia least-coneccted hay que indicar la directiva least_conn en la directiva upstream.
+
+upstream app {
+    least_conn;
+    server app1:8080;
+    server app2:8080;
+    server app3:8080;
+}
+·······························································································································
+
+Hay que tener en cuenta que en las estrategias round-robin y least-conected cada petición probablemente sea atendida por un servidor 
+diferente de modo que si los servidores no comparten las sesiones se producirán comportamientos erráticos. Usando la estrategia 
+ip_hash se usará la dirección IP para redirigir todas las peticiones al mismo servidor que se conoce como sticky session.
+
+upstream app {
+    ip_hash;
+    server app1:8080;
+    server app2:8080;
+    server app3:8080;
+}
+
+·······························································································································
+
+Para que los servidores compartan la sesión y evitar usar sticky session podemos usar Redis como sistema de información para guardar 
+las sesiones de los servidores, si un servidor de aplicaciones deja de funcionar las sesiones que mantuviese no se perderán y las peticiones 
+podrán ser atendida por cualquier servidor. Si hay un servidor que queremos procese más peticiones porque tiene más capacidad podemos 
+dar más peso a este. En esta configuración de cada 5 peticiones 3 serán atendidas por el servidor app1, 1 por el app2 y otra por app3.
+
+upstream app {
+    server app1:8080 weight=3;
+    server app2:8080;
+    server app3:8080;
+}
+
+·······························································································································
+
+Cuando un servidor falla al servir una petición Nginx lo marca como en estado erróneo y deja de enviarle peticiones, los chequeos de
+salud se hacen de forma pasiva según el resultado de las peticiones que se envían. Con max_fails se establece el máximo número de 
+fallos antes de considerar un servidor con estado erróneo, tiene un valor por defecto de 1. Con fail_timeout se establece el tiempo que un 
+servidor se considera que está en estado erróneo antes de enviar una nueva petición, si enviada una nueva petición responde correctamente se 
+vuelve a considerar en estado correcto. Con la directiva health_check se puede configurar las comprobaciones de estado que hace Nginx para determinar 
+si el servidor de aplicaciones está funcionando correctamente.
+
+upstream app {
+    server app1:8080 max_fails=5 fail_timeout=30s;
+    server app2:8080 max_fails=1 fail_timeout=60s;
+    server app3:8080;
+}
+
+
+
