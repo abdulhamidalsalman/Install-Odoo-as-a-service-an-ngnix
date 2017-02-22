@@ -1,0 +1,53 @@
+*************************************************************************INSTALACION SERVIDOR NGINX*****************************************************************************
+
+
+Instalacion de nginx:
+
+Para realizar la instalacion es mejor desde los repositorios de nginx tutorial completo en el siguiente link: 
+https://www.nginx.com/resources/admin-guide/
+Seleccionar la opcion open source
+
+Installing From NGINX Repository
+########## 1. Download the key used to sign NGINX packages and repository to the apt program keyring and add it: ##########
+
+$ sudo wget http://nginx.org/keys/nginx_signing.key
+$ sudo apt-key add nginx_signing.key
+
+########## 2. Add the “sources” from which NGINX Open Source packages can be obtained: open the /etc/apt/sources.list file in any text editor, for example, vi: ##########
+
+$ sudo vi /etc/apt/sources.list
+
+deb http://nginx.org/packages/mainline/ubuntu/ codename nginx
+deb-src http://nginx.org/packages/mainline/ubuntu/ codename nginx
+
+where:
+codename is a codename of an Ubuntu release:
+Version	Codename	Supported Platforms
+12.04	precise	x86_64, i386
+14.04	trusty	x86_64, i386, aarch64/arm64
+15.10	wily	x86_64, i386
+16.04	xenial	x86_64, i386
+
+########## 3. “/mainline” points to the latest mainline verson. Delete to get the latest stable version ##########
+	For example, to get the latest mainline package for Ubuntu 14.04 (“trusty”), insert:
+
+deb http://nginx.org/packages/mainline/ubuntu/ trusty nginx
+deb-src http://nginx.org/packages/mainline/ubuntu/ trusty nginx
+
+########## 4. Save the changes and quit vi: press ESC and type-in :wq ##########
+    Run the commands:
+	
+$ sudo apt-get remove nginx-common
+$ sudo apt-get update
+$ sudo apt-get install nginx	
+
+
+########## 5. Run NGINX Open Source: ##########
+
+$ sudo nginx
+
+########## 6. Verify that NGINX Open Source is up and running: ##########
+
+$ curl -I 127.0.0.1
+HTTP/1.1 200 OK
+Server: nginx/1.11.9
