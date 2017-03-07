@@ -1,0 +1,39 @@
+*************************************************************************INSTALACION DE WKHTMLTOPDF *********************************************
+
+
+############# Relizar la instalacion para ubuntu trusty: #############
+
+############# Si se presentan problemas por dependencias que hagan falta en el sistema operativo realizar lo siguiente: #############
+
+sudo apt-get autoremove
+
+sudo apt-get autoclean
+
+sudo apt-get update
+
+sudo apt-get -f install
+
+#############Luego de limpiar la memoria de repositorios entonces instalar algunas dependencias: #############
+
+sudo apt-get install lubuntu-restricted-extras
+
+############# Descargar la dependencia libicu52 #############
+
+https://launchpad.net/ubuntu/wily/amd64/libicu52/52.1-8
+
+############# Instalar wkhtmltopdf #############
+
+cd tmp
+
+sudo wget http://download.gna.org/wkhtmltopdf/0.12/0.12.1/wkhtmltox-0.12.1_linux-trusty-amd64.deb   ---> si no esta el repositorio usar el que 
+																													  se encuentra en la carpeta 
+																													  
+sudo dpkg -i wkhtmltox-0.12.1_linux-trusty-amd64.deb
+
+	
+cd /usr/local/bin
+
+sudo cp wkhtmltoimage /usr/bin/wkhtmltoimage
+sudo cp wkhtmltopdf /usr/bin/wkhtmltopdf
+
+sudo /etc/init.d/odoo-server restart
