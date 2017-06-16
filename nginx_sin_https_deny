@@ -1,0 +1,22 @@
+server {
+    listen 80;
+    server_name     52.26.124.190;
+    location / {
+        proxy_pass http://localhost:8069;
+        proxy_set_header  X-Real-IP  $remote_addr;
+        proxy_set_header  Host  $http_host;
+    }
+
+    location /web/database/manager {
+
+        proxy_pass http://localhost:8069/page/services;
+         proxy_set_header  X-Real-IP  $remote_addr;
+        proxy_set_header  Host  $http_host;
+         #deny all;
+        #return 404;
+
+
+    }
+
+
+}
